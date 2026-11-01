@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coins & Tags · Col·lecció</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#eef0ea;--card:#fbfcf9;--ink:#1f2a24;--mute:#66726b;--line:#d5dad0;--moss:#3e6b4f;
+--t-mega:#b8893a;--t-giga:#a4452c;--t-maze:#2f6d8a;--t-block:#6a4c93;--t-event:#3e6b4f;--t-lackeys:#8a5a2b;--t-personal:#c0577a;--t-altres:#76817a}
+@media (prefers-color-scheme:dark){:root{--bg:#141a16;--card:#1d2520;--ink:#e8ede6;--mute:#93a097;--line:#2f3a33;--moss:#7fb392}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Bricolage Grotesque",system-ui,sans-serif;padding:0 16px 48px}
+main{max-width:1100px;margin:0 auto}
+header{padding:32px 0 16px;display:flex;flex-wrap:wrap;gap:16px;align-items:end;justify-content:space-between}
+h1{margin:0;font-size:clamp(28px,5vw,44px);font-weight:800;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:4px 0 0}
+button,select,input{font:inherit;color:inherit}
+.btn{background:var(--ink);color:var(--bg);border:0;border-radius:999px;padding:8px 16px;cursor:pointer}
+.btn:focus-visible,.chip:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,.code:focus-visible{outline:2px solid var(--moss);outline-offset:2px}
+.stats{display:flex;flex-wrap:wrap;gap:8px 24px;margin:8px 0 20px}
+.stat b{font-size:26px;font-weight:800;display:block;line-height:1}
+.stat span{color:var(--mute);font-size:13px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.bar input[type=search]{flex:1 1 220px;padding:9px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card)}
+.bar select{padding:9px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:13px}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;gap:14px;align-items:flex-start}
+.coin{flex:none;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;
+background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.35),transparent 45%),var(--c,var(--t-altres));box-shadow:inset 0 0 0 3px rgba(255,255,255,.25),inset 0 0 0 5px rgba(0,0,0,.12)}
+.card.big{flex-direction:column;align-items:stretch}
+.card.big .body{width:100%}
+.pics{display:flex;gap:10px;justify-content:center}
+.pics img{flex:1 1 0;min-width:0;max-width:170px;aspect-ratio:1;object-fit:cover;border-radius:50%;background:var(--line);display:block}
+.body{min-width:0;flex:1}
+.title{font-weight:600;margin:0 0 4px;overflow-wrap:anywhere}
+.meta{color:var(--mute);font-size:13px;display:flex;flex-wrap:wrap;gap:4px 12px}
+.row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.code{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;border:1px dashed var(--line);border-radius:6px;padding:2px 7px;background:transparent;cursor:pointer}
+.code.ok{border-color:var(--moss);color:var(--moss)}
+a.go{font-size:13px;color:var(--moss);text-decoration:none;border-bottom:1px solid currentColor}
+.empty,.msg{padding:32px;text-align:center;color:var(--mute)}
+.msg{background:var(--card);border:1px solid var(--line);border-radius:14px;color:var(--ink);text-align:left}
+.msg code{background:var(--bg);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div>
+    <h1>Coins &amp; Tags</h1>
+    <p class="sub" id="status">Carregant el full…</p>
+  </div>
+  <button class="btn" id="refresh" type="button">Actualitza des del full</button>
+</header>
+<div class="stats" id="stats"></div>
+<div class="bar">
+  <input type="search" id="q" placeholder="Cerca per nom, codi o lloc" aria-label="Cerca">
+  <select id="type" aria-label="Tipus"></select>
+  <select id="year" aria-label="Any"></select>
+  <select id="sort" aria-label="Ordre">
+    <option value="date-desc">Data: més recents</option>
+    <option value="date-asc">Data: més antics</option>
+    <option value="name">Nom A–Z</option>
+  </select>
+</div>
+<div class="chips" id="sections" role="group" aria-label="Seccions"></div>
+<div id="out"></div>
+</main>
+
+<script>
+const SHEET_ID = "1PspmMmUEz9AVBAahFeVlrwuQnus3rfqvoNtieHED-bs";
+const TABS = ["Coins", "Tags"]; // noms de les pestanyes del full
+const TYPES = [
+  ["MEGA", /\bMEGA\b/i, "--t-mega"], ["GIGA", /\bGIGA\b/i, "--t-giga"], ["MAZE", /\bMAZE\b/i, "--t-maze"],
+  ["Block Party", /block ?part/i, "--t-block"], ["Community", /comm?unity/i, "--t-event"],
+  ["Event", /\bevent\b/i, "--t-event"], ["Lackeys", /lackeys/i, "--t-lackeys"]
+];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let items = [], state = {section: "", type: "", year: "", q: "", sort: "date-desc"};
+
+function parseCSV(text) {
+  const rows = []; let row = [], f = "", inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) { if (c === '"') { if (text[i+1] === '"') { f += '"'; i++; } else inQ = false; } else f += c; }
+    else if (c === '"') inQ = true;
+    else if (c === ",") { row.push(f); f = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i+1] === "\n") i++; row.push(f); rows.push(row); row = []; f = ""; }
+    else f += c;
+  }
+  if (f || row.length) { row.push(f); rows.push(row); }
+  return rows;
+}
+
+function toDate(s) {
+  let m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+  m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+  return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+}
+
+function parseRow(cells, section, tab) {
+  const vals = cells.map(c => c.trim()).filter(Boolean);
+  if (!vals.length) return {skip: true};
+  const text = vals.join("\n");
+  const urls = text.match(/https?:\/\/\S+/g) || [];
+  const isImg = u => /\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(u) || /drive\.google\.com\/(file\/d\/|open\?id=|uc\?|thumbnail)|lh3\.googleusercontent\.com/i.test(u);
+  const toImg = u => { const m = u.match(/\/file\/d\/([\w-]+)/) || u.match(/[?&]id=([\w-]+)/); return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w400` : u; };
+  const images = urls.filter(isImg).map(toImg).slice(0, 2);
+  const url = urls.find(u => !isImg(u)) || "";
+  const date = toDate(text);
+  const clean = text.replace(/https?:\/\/\S+/g, "").replace(/\d{1,2}\/\d{1,2}\/\d{4}/, "");
+  const codes = [];
+  clean.split("\n").forEach(line => {
+    const toks = line.trim().split(/\s+/);
+    toks.forEach((t, i) => {
+      const w = t.replace(/[()]/g, "");
+      if (/^[A-Z0-9]{6}$/.test(w) && (/\d/.test(w) || (i === toks.length - 1 && i > 0))) codes.push(w);
+    });
+  });
+  if (!codes.length && !url && !date && vals.length === 1 && vals[0].length < 45) return {header: vals[0]};
+  const title = clean.split("\n").map(l => l.split(/\s+/).filter(w => !codes.includes(w.replace(/[()]/g, ""))).join(" ").trim())
+    .filter(Boolean).join(" · ");
+  if (!title && !codes.length) return {skip: true};
+  const t = TYPES.find(t => t[1].test(title)) || (/personal/i.test(section) ? ["Personal", 0, "--t-personal"] : ["Altres", 0, "--t-altres"]);
+  const yr = date ? date.getFullYear() : ((title.match(/20\d\d/) || [""])[0]);
+  return {item: {images, title: title || codes[0], codes, url, date, year: String(yr || ""), type: t[0], color: t[2], section: section || "General", tab}};
+}
+
+function gviz(tab) {
+  // Càrrega via <script> (JSONP): no depèn de CORS i funciona també obrint el fitxer en local
+  return new Promise((resolve, reject) => {
+    const cb = "__gv" + Math.random().toString(36).slice(2);
+    const sc = document.createElement("script");
+    const done = () => { clearTimeout(tm); delete window[cb]; sc.remove(); };
+    const tm = setTimeout(() => { done(); reject(new Error((tab || "primera pestanya") + ": temps d'espera esgotat")); }, 12000);
+    window[cb] = d => { done(); d && d.status === "ok" ? resolve(d.table) : reject(new Error((tab || "primera pestanya") + ": " + (d && d.errors ? d.errors.map(e => e.detailed_message || e.message).join(" ") : "resposta no vàlida"))); };
+    sc.onerror = () => { done(); reject(new Error((tab || "primera pestanya") + ": no s'ha pogut connectar amb Google")); };
+    sc.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?headers=0&tqx=responseHandler:${cb}` + (tab ? "&sheet=" + encodeURIComponent(tab) : "");
+    document.head.appendChild(sc);
+  });
+}
+
+async function loadTab(tab, named) {
+  const table = await gviz(named ? tab : "");
+  const rows = table.rows.map(r => (r.c || []).map(c => c ? (c.f != null ? c.f : (c.v != null ? c.v : "")) : "").map(String));
+  const lab = (table.cols || []).map(c => c.label || "");
+  if (lab.some(Boolean)) rows.unshift(lab);
+  const out = []; let section = "";
+  rows.forEach(r => {
+    const p = parseRow(r, section, tab);
+    if (p.header) section = p.header; else if (p.item) out.push(p.item);
+  });
+  return out;
+}
+
+async function load() {
+  $("status").textContent = "Carregant el full…";
+  try {
+    const res = await Promise.allSettled([loadTab("Coins", false), loadTab("Tags", true)]);
+    const seen = new Set();
+    items = res.flatMap(r => r.status === "fulfilled" ? r.value : []).filter(i => {
+      const k = i.title + "|" + i.codes.join(","); return seen.has(k) ? false : (seen.add(k), true);
+    });
+    if (!items.length) throw new Error(res.map(r => r.reason && r.reason.message).filter(Boolean).join(" | ") || "Sense dades");
+    $("status").textContent = `${items.length} elements · actualitzat ${new Date().toLocaleTimeString("ca")}`;
+    buildFilters(); render();
+  } catch (e) {
+    $("status").textContent = "No s'ha pogut carregar el full";
+    $("out").innerHTML = `<div class="msg"><b>No s'ha pogut llegir el full de Google.</b><p>Comprova que el full està compartit com a «Qualsevol persona amb l'enllaç → Lector», que les pestanyes es diuen <code>${TABS.join("</code> i <code>")}</code> i que tens connexió. Si obres el fitxer des d'un entorn restringit (previsualitzador, correu), prova-ho des del navegador.</p><p style="color:var(--mute)">Detall tècnic: ${esc(e.message)}</p></div>`;
+  }
+}
+
+function buildFilters() {
+  const opts = (arr, all) => `<option value="">${all}</option>` + arr.map(v => `<option>${esc(v)}</option>`).join("");
+  const uniq = k => [...new Set(items.map(i => i[k]).filter(Boolean))];
+  $("type").innerHTML = opts(uniq("type").sort(), "Tots els tipus");
+  $("year").innerHTML = opts(uniq("year").sort().reverse(), "Tots els anys");
+  const secs = uniq("section");
+  $("sections").innerHTML = ["", ...secs].map(s => `<button type="button" class="chip" data-s="${esc(s)}" aria-pressed="${s === state.section}">${s ? esc(s) : "Tot"}</button>`).join("");
+}
+
+function render() {
+  const q = state.q.toLowerCase();
+  let list = items.filter(i =>
+    (!state.section || i.section === state.section) && (!state.type || i.type === state.type) &&
+    (!state.year || i.year === state.year) &&
+    (!q || (i.title + " " + i.codes.join(" ")).toLowerCase().includes(q)));
+  const by = state.sort;
+  list.sort((a, b) => by === "name" ? a.title.localeCompare(b.title, "ca")
+    : ((a.date || 0) - (b.date || 0)) * (by === "date-asc" ? 1 : -1));
+  const events = items.filter(i => i.date).length;
+  const countries = new Set(items.map(i => i.type)).size;
+  $("stats").innerHTML = `<div class="stat"><b>${items.length}</b><span>elements totals</span></div>
+    <div class="stat"><b>${list.length}</b><span>amb els filtres actuals</span></div>
+    <div class="stat"><b>${new Set(items.map(i => i.year).filter(Boolean)).size}</b><span>anys de col·lecció</span></div>
+    <div class="stat"><b>${countries}</b><span>tipus</span></div>`;
+  $("out").innerHTML = list.length ? `<div class="grid">${list.map(card).join("")}</div>` : `<div class="empty">Cap resultat. Prova de treure algun filtre.</div>`;
+}
+
+function card(i) {
+  const d = i.date ? i.date.toLocaleDateString("ca", {day: "numeric", month: "short", year: "numeric"}) : "";
+  const ab = i.type === "Block Party" ? "BP" : i.type.slice(0, 4);
+  const pic = i.images.length
+    ? `<div class="pics">${i.images.map((u, n) => `<img src="${esc(u)}" alt="${esc(i.title)} (${n ? "darrere" : "davant"})" loading="lazy" referrerpolicy="no-referrer">`).join("")}</div>`
+    : `<div class="coin" style="--c:var(${i.color})" aria-hidden="true">${esc(ab)}</div>`;
+  return `<article class="card${i.images.length ? " big" : ""}">${pic}
+  <div class="body"><p class="title">${esc(i.title)}</p>
+  <div class="meta"><span>${esc(i.type)}</span>${d ? `<span>${esc(d)}</span>` : ""}<span>${esc(i.tab)}</span></div>
+  <div class="row">${i.codes.map(c => `<button type="button" class="code" data-c="${esc(c)}" title="Copia el codi">${esc(c)}</button>`).join("")}
+  ${i.url ? `<a class="go" href="${esc(i.url)}" target="_blank" rel="noopener">Obre a geocaching.com</a>` : ""}</div></div></article>`;
+}
+
+$("q").addEventListener("input", e => { state.q = e.target.value; render(); });
+$("type").addEventListener("change", e => { state.type = e.target.value; render(); });
+$("year").addEventListener("change", e => { state.year = e.target.value; render(); });
+$("sort").addEventListener("change", e => { state.sort = e.target.value; render(); });
+$("refresh").addEventListener("click", load);
+$("sections").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  state.section = b.dataset.s;
+  [...$("sections").children].forEach(c => c.setAttribute("aria-pressed", c === b));
+  render();
+});
+$("out").addEventListener("click", e => {
+  const b = e.target.closest(".code"); if (!b) return;
+  try { navigator.clipboard.writeText(b.dataset.c); } catch (_) {}
+  b.classList.add("ok"); const t = b.textContent; b.textContent = "Copiat";
+  setTimeout(() => { b.textContent = t; b.classList.remove("ok"); }, 1000);
+});
+load();
+</script>
+</body>
+</html>
