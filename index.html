@@ -27,14 +27,19 @@ button,select,input{font:inherit;color:inherit}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
 .chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:13px}
 .chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card)}
+.sg{border:0;background:transparent;padding:6px 14px;cursor:pointer;font-size:13px}
+.sg[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.sg span,#dup span{opacity:.65;margin-left:2px}
+.qty{font-weight:800;color:var(--t-mega)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;gap:14px;align-items:flex-start}
 .coin{flex:none;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;
 background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.35),transparent 45%),var(--c,var(--t-altres));box-shadow:inset 0 0 0 3px rgba(255,255,255,.25),inset 0 0 0 5px rgba(0,0,0,.12)}
 .card.big{flex-direction:column;align-items:stretch}
 .card.big .body{width:100%}
-.pics{display:flex;gap:10px;justify-content:center}
-.pics img{flex:1 1 0;min-width:0;max-width:170px;aspect-ratio:1;object-fit:cover;border-radius:50%;background:var(--line);display:block}
+.pics{display:flex;gap:12px;justify-content:center;align-items:center}
+.pics img{flex:0 1 auto;min-width:0;max-width:calc(50% - 6px);max-height:180px;width:auto;height:auto;object-fit:contain;border-radius:0;display:block;background:transparent}
 .body{min-width:0;flex:1}
 .title{font-weight:600;margin:0 0 4px;overflow-wrap:anywhere}
 .meta{color:var(--mute);font-size:13px;display:flex;flex-wrap:wrap;gap:4px 12px}
@@ -57,6 +62,14 @@ a.go{font-size:13px;color:var(--moss);text-decoration:none;border-bottom:1px sol
   <button class="btn" id="refresh" type="button">Actualitza des del full</button>
 </header>
 <div class="stats" id="stats"></div>
+<div class="chips" id="quick" style="align-items:center">
+  <div class="seg" id="kind" role="group" aria-label="Tipus d'element">
+    <button type="button" class="sg" data-k="" aria-pressed="true">Tot <span id="n-all"></span></button>
+    <button type="button" class="sg" data-k="Geocoin" aria-pressed="false">Geocoins <span id="n-coin"></span></button>
+    <button type="button" class="sg" data-k="Tag" aria-pressed="false">Tags <span id="n-tag"></span></button>
+  </div>
+  <button type="button" class="chip" id="dup" aria-pressed="false">Repetits (més d'una unitat) <span id="n-dup"></span></button>
+</div>
 <div class="bar">
   <input type="search" id="q" placeholder="Cerca per nom, codi o lloc" aria-label="Cerca">
   <select id="type" aria-label="Tipus"></select>
@@ -81,7 +94,7 @@ const TYPES = [
 ];
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let items = [], state = {section: "", type: "", year: "", q: "", sort: "date-desc"};
+let items = [], state = {kind: "", dup: false, section: "", type: "", year: "", q: "", sort: "date-desc"};
 
 function parseCSV(text) {
   const rows = []; let row = [], f = "", inQ = false;
@@ -104,32 +117,42 @@ function toDate(s) {
   return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
 }
 
-function parseRow(cells, section, tab) {
-  const vals = cells.map(c => c.trim()).filter(Boolean);
-  if (!vals.length) return {skip: true};
-  const text = vals.join("\n");
-  const urls = text.match(/https?:\/\/\S+/g) || [];
-  const isImg = u => /\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(u) || /drive\.google\.com\/(file\/d\/|open\?id=|uc\?|thumbnail)|lh3\.googleusercontent\.com/i.test(u);
-  const toImg = u => { const m = u.match(/\/file\/d\/([\w-]+)/) || u.match(/[?&]id=([\w-]+)/); return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w400` : u; };
-  const images = urls.filter(isImg).map(toImg).slice(0, 2);
-  const url = urls.find(u => !isImg(u)) || "";
-  const date = toDate(text);
-  const clean = text.replace(/https?:\/\/\S+/g, "").replace(/\d{1,2}\/\d{1,2}\/\d{4}/, "");
-  const codes = [];
-  clean.split("\n").forEach(line => {
-    const toks = line.trim().split(/\s+/);
-    toks.forEach((t, i) => {
-      const w = t.replace(/[()]/g, "");
-      if (/^[A-Z0-9]{6}$/.test(w) && (/\d/.test(w) || (i === toks.length - 1 && i > 0))) codes.push(w);
-    });
+const norm = x => String(x || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+const isImg = u => /\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(u) || /drive\.google\.com\/(file\/d\/|open\?id=|uc\?|thumbnail)|lh3\.googleusercontent\.com/i.test(u);
+const toImg = u => { const m = u.match(/\/file\/d\/([\w-]+)/) || u.match(/[?&]id=([\w-]+)/); return m ? `https://lh3.googleusercontent.com/d/${m[1]}=w600` : u; };
+
+// Llegeix les files segons els noms de columna de la fila de capçalera (Nom, Codi, Enllaç, Quantitat, Frontal, Dors)
+function parseRows(rows, tab) {
+  let hi = rows.findIndex(r => r.some(c => norm(c) === "codi") && r.some(c => norm(c) === "nom"));
+  let H = hi >= 0 ? rows[hi].map(norm) : ["frontal", "dors", "nom", "codi", "enllac", "quantitat", "frontal", "dors"];
+  if (hi < 0) hi = 0;
+  const idx = n => H.indexOf(n);
+  const iNom = idx("nom"), iCodi = idx("codi"), iUrl = idx("enllac"), iQty = idx("quantitat");
+  const fr = [], dr = [];
+  H.forEach((h, i) => { if (h === "frontal") fr.push(i); if (h === "dors") dr.push(i); });
+  const out = []; let section = "";
+  rows.forEach((r, ri) => {
+    if (ri <= hi) return; // la fila de noms de camp no és una fitxa
+    const v = r.map(c => String(c == null ? "" : c).trim());
+    const filled = v.filter(Boolean);
+    if (!filled.length) return;
+    const get = i => (i >= 0 ? v[i] || "" : "");
+    if (filled.length === 1 && !get(iCodi) && !/https?:/.test(filled[0])) { section = filled[0]; return; }
+    const nom = get(iNom);
+    const date = toDate(nom) || toDate(v.join(" "));
+    const title = nom.split("\n").map(l => l.replace(/\d{1,2}\/\d{1,2}\/\d{4}/, "").trim()).filter(Boolean).join(" · ");
+    const codes = get(iCodi).split(/[\n,;]+/).map(c => c.trim()).filter(Boolean);
+    if (!title && !codes.length) return;
+    const url = (get(iUrl).match(/https?:\/\/\S+/) || [""])[0];
+    const q = parseInt(get(iQty), 10);
+    const pick = list => { for (const i of list) { const u = (get(i).match(/https?:\/\/\S+/) || [""])[0]; if (u && isImg(u)) return toImg(u); } return ""; };
+    const images = [pick(fr), pick(dr)].filter(Boolean);
+    const t = TYPES.find(t => t[1].test(title)) || (/personal/i.test(section) ? ["Personal", 0, "--t-personal"] : ["Altres", 0, "--t-altres"]);
+    const yr = date ? date.getFullYear() : ((title.match(/20\d\d/) || [""])[0]);
+    out.push({images, title: title || codes[0], codes, url, date, year: String(yr || ""), type: t[0], color: t[2],
+      section: section || "General", tab, kind: tab === "Tags" ? "Tag" : "Geocoin", qty: isNaN(q) ? 1 : q});
   });
-  if (!codes.length && !url && !date && vals.length === 1 && vals[0].length < 45) return {header: vals[0]};
-  const title = clean.split("\n").map(l => l.split(/\s+/).filter(w => !codes.includes(w.replace(/[()]/g, ""))).join(" ").trim())
-    .filter(Boolean).join(" · ");
-  if (!title && !codes.length) return {skip: true};
-  const t = TYPES.find(t => t[1].test(title)) || (/personal/i.test(section) ? ["Personal", 0, "--t-personal"] : ["Altres", 0, "--t-altres"]);
-  const yr = date ? date.getFullYear() : ((title.match(/20\d\d/) || [""])[0]);
-  return {item: {images, title: title || codes[0], codes, url, date, year: String(yr || ""), type: t[0], color: t[2], section: section || "General", tab}};
+  return out;
 }
 
 function gviz(tab) {
@@ -141,7 +164,7 @@ function gviz(tab) {
     const tm = setTimeout(() => { done(); reject(new Error((tab || "primera pestanya") + ": temps d'espera esgotat")); }, 12000);
     window[cb] = d => { done(); d && d.status === "ok" ? resolve(d.table) : reject(new Error((tab || "primera pestanya") + ": " + (d && d.errors ? d.errors.map(e => e.detailed_message || e.message).join(" ") : "resposta no vàlida"))); };
     sc.onerror = () => { done(); reject(new Error((tab || "primera pestanya") + ": no s'ha pogut connectar amb Google")); };
-    sc.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?headers=0&tqx=responseHandler:${cb}` + (tab ? "&sheet=" + encodeURIComponent(tab) : "");
+    sc.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?headers=1&tqx=responseHandler:${cb}` + (tab ? "&sheet=" + encodeURIComponent(tab) : "");
     document.head.appendChild(sc);
   });
 }
@@ -149,14 +172,8 @@ function gviz(tab) {
 async function loadTab(tab, named) {
   const table = await gviz(named ? tab : "");
   const rows = table.rows.map(r => (r.c || []).map(c => c ? (c.f != null ? c.f : (c.v != null ? c.v : "")) : "").map(String));
-  const lab = (table.cols || []).map(c => c.label || "");
-  if (lab.some(Boolean)) rows.unshift(lab);
-  const out = []; let section = "";
-  rows.forEach(r => {
-    const p = parseRow(r, section, tab);
-    if (p.header) section = p.header; else if (p.item) out.push(p.item);
-  });
-  return out;
+  rows.unshift((table.cols || []).map(c => c.label || ""));
+  return parseRows(rows, tab);
 }
 
 async function load() {
@@ -188,31 +205,78 @@ function buildFilters() {
 function render() {
   const q = state.q.toLowerCase();
   let list = items.filter(i =>
-    (!state.section || i.section === state.section) && (!state.type || i.type === state.type) &&
+    (!state.kind || i.kind === state.kind) && (!state.dup || i.qty > 1) && (!state.section || i.section === state.section) && (!state.type || i.type === state.type) &&
     (!state.year || i.year === state.year) &&
     (!q || (i.title + " " + i.codes.join(" ")).toLowerCase().includes(q)));
   const by = state.sort;
   list.sort((a, b) => by === "name" ? a.title.localeCompare(b.title, "ca")
     : ((a.date || 0) - (b.date || 0)) * (by === "date-asc" ? 1 : -1));
-  const events = items.filter(i => i.date).length;
-  const countries = new Set(items.map(i => i.type)).size;
-  $("stats").innerHTML = `<div class="stat"><b>${items.length}</b><span>elements totals</span></div>
-    <div class="stat"><b>${list.length}</b><span>amb els filtres actuals</span></div>
-    <div class="stat"><b>${new Set(items.map(i => i.year).filter(Boolean)).size}</b><span>anys de col·lecció</span></div>
-    <div class="stat"><b>${countries}</b><span>tipus</span></div>`;
+  const dups = items.filter(i => i.qty > 1).length;
+  $("n-all").textContent = items.length;
+  $("n-coin").textContent = items.filter(i => i.kind === "Geocoin").length;
+  $("n-tag").textContent = items.filter(i => i.kind === "Tag").length;
+  $("n-dup").textContent = dups;
+  $("stats").innerHTML = `<div class="stat"><b>${items.length}</b><span>elements</span></div>
+    <div class="stat"><b>${items.reduce((a, i) => a + i.qty, 0)}</b><span>unitats totals</span></div>
+    <div class="stat"><b>${dups}</b><span>repetits</span></div>
+    <div class="stat"><b>${list.length}</b><span>amb els filtres actuals</span></div>`;
   $("out").innerHTML = list.length ? `<div class="grid">${list.map(card).join("")}</div>` : `<div class="empty">Cap resultat. Prova de treure algun filtre.</div>`;
+  fixImages();
+}
+
+
+// Treu el fons negre o blanc incrustat (només si les 4 cantonades són d'aquest color) i el fa transparent
+function transparentize(img) {
+  const w = img.naturalWidth, h = img.naturalHeight;
+  if (!w || !h || w * h > 4e6) return;
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const x = c.getContext("2d", {willReadFrequently: true}); x.drawImage(img, 0, 0);
+  const d = x.getImageData(0, 0, w, h), px = d.data;
+  const cor = [0, w - 1, (h - 1) * w, h * w - 1].map(i => [px[i*4], px[i*4+1], px[i*4+2], px[i*4+3]]);
+  if (cor.some(p => p[3] < 250)) return;
+  const m = [0, 1, 2].map(k => cor.reduce((a, p) => a + p[k], 0) / 4);
+  if (!cor.every(p => Math.abs(p[0]-m[0]) + Math.abs(p[1]-m[1]) + Math.abs(p[2]-m[2]) < 60)) return;
+  const lum = (m[0] + m[1] + m[2]) / 3;
+  if (lum > 60 && lum < 200) return;
+  const dist = i => Math.abs(px[i*4]-m[0]) + Math.abs(px[i*4+1]-m[1]) + Math.abs(px[i*4+2]-m[2]);
+  const TOL = 60, gone = new Uint8Array(w * h), st = [];
+  const seed = i => { if (!gone[i] && dist(i) <= TOL) { gone[i] = 1; st.push(i); } };
+  for (let i = 0; i < w; i++) { seed(i); seed((h - 1) * w + i); }
+  for (let j = 0; j < h; j++) { seed(j * w); seed(j * w + w - 1); }
+  while (st.length) {
+    const i = st.pop(), cx = i % w;
+    if (cx > 0) seed(i - 1); if (cx < w - 1) seed(i + 1);
+    if (i >= w) seed(i - w); if (i < w * (h - 1)) seed(i + w);
+  }
+  for (let i = 0; i < w * h; i++) {
+    if (gone[i]) { px[i*4+3] = 0; continue; }
+    const cx = i % w;
+    const near = (cx > 0 && gone[i-1]) || (cx < w-1 && gone[i+1]) || (i >= w && gone[i-w]) || (i < w*(h-1) && gone[i+w]);
+    if (near && dist(i) <= TOL * 2.5) px[i*4+3] = 120;
+  }
+  x.putImageData(d, 0, 0);
+  img.src = c.toDataURL("image/png");
+}
+
+function fixImages() {
+  document.querySelectorAll(".pics img:not([data-fx])").forEach(img => {
+    img.dataset.fx = "0";
+    const run = () => { if (img.dataset.fx === "1") return; img.dataset.fx = "1"; try { transparentize(img); } catch (_) {} };
+    img.addEventListener("error", () => { if (img.hasAttribute("crossorigin")) { img.removeAttribute("crossorigin"); img.src = img.src; } }, {once: true});
+    img.complete && img.naturalWidth ? run() : img.addEventListener("load", run, {once: true});
+  });
 }
 
 function card(i) {
   const d = i.date ? i.date.toLocaleDateString("ca", {day: "numeric", month: "short", year: "numeric"}) : "";
   const ab = i.type === "Block Party" ? "BP" : i.type.slice(0, 4);
   const pic = i.images.length
-    ? `<div class="pics">${i.images.map((u, n) => `<img src="${esc(u)}" alt="${esc(i.title)} (${n ? "darrere" : "davant"})" loading="lazy" referrerpolicy="no-referrer">`).join("")}</div>`
+    ? `<div class="pics">${i.images.map((u, n) => `<img src="${esc(u)}" alt="${esc(i.title)} (${n ? "darrere" : "davant"})" loading="lazy" crossorigin="anonymous" referrerpolicy="no-referrer">`).join("")}</div>`
     : `<div class="coin" style="--c:var(${i.color})" aria-hidden="true">${esc(ab)}</div>`;
   return `<article class="card${i.images.length ? " big" : ""}">${pic}
   <div class="body"><p class="title">${esc(i.title)}</p>
-  <div class="meta"><span>${esc(i.type)}</span>${d ? `<span>${esc(d)}</span>` : ""}<span>${esc(i.tab)}</span></div>
-  <div class="row">${i.codes.map(c => `<button type="button" class="code" data-c="${esc(c)}" title="Copia el codi">${esc(c)}</button>`).join("")}
+  <div class="meta"><span>${esc(i.type)}</span>${d ? `<span>${esc(d)}</span>` : ""}<span>${esc(i.kind)}</span>${i.qty > 1 ? `<span class="qty">×${i.qty}</span>` : ""}</div>
+  <div class="row">${i.codes.map(c => `<button type="button" class="code" data-c="${esc((c.match(/[A-Z0-9]{5,7}/) || [c])[0])}" title="Copia el codi">${esc(c)}</button>`).join("")}
   ${i.url ? `<a class="go" href="${esc(i.url)}" target="_blank" rel="noopener">Obre a geocaching.com</a>` : ""}</div></div></article>`;
 }
 
@@ -221,6 +285,15 @@ $("type").addEventListener("change", e => { state.type = e.target.value; render(
 $("year").addEventListener("change", e => { state.year = e.target.value; render(); });
 $("sort").addEventListener("change", e => { state.sort = e.target.value; render(); });
 $("refresh").addEventListener("click", load);
+$("kind").addEventListener("click", e => {
+  const b = e.target.closest(".sg"); if (!b) return;
+  state.kind = b.dataset.k;
+  [...$("kind").children].forEach(c => c.setAttribute("aria-pressed", c === b));
+  render();
+});
+$("dup").addEventListener("click", e => {
+  state.dup = !state.dup; e.currentTarget.setAttribute("aria-pressed", state.dup); render();
+});
 $("sections").addEventListener("click", e => {
   const b = e.target.closest(".chip"); if (!b) return;
   state.section = b.dataset.s;
