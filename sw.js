@@ -1,4 +1,4 @@
-const SHELL = "coins-shell-v1";
+const SHELL = "coins-shell-v6";
 const IMG = "coins-img-v1"; // la mateixa memòria cau que omple la pàgina amb les imatges
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 

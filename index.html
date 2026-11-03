@@ -6,57 +6,74 @@
 <meta name="theme-color" content="#14161a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Coins">
+<meta name="apple-mobile-web-app-title" content="Geocoins">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>Coins & Tags · Col·lecció</title>
+<title>Geocoins & Tags · Col·lecció</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
-:root{--bg:#f7f7f5;--card:#fff;--soft:#f0f0ed;--ink:#14161a;--mute:#6c7280;--line:#e8e8e4}
-@media (prefers-color-scheme:dark){:root{--bg:#0e1013;--card:#16191e;--soft:#1e2228;--ink:#eceef1;--mute:#8d94a1;--line:#272c34}}
+:root{--bg:#f4f6fa;--card:#fff;--soft:#eef1f6;--ink:#0f1729;--mute:#64708a;--line:#e2e7f0;
+--accent:#2d4fb5;--accent-soft:#e8edfb;--accent-ink:#1f3a8a;--on-accent:#fff;--tag:#9a5509;--tag-soft:#fcf0dd}
+@media (prefers-color-scheme:dark){:root{--bg:#0d111a;--card:#151b27;--soft:#1c2433;--ink:#e8ecf5;--mute:#8b97b0;--line:#262f42;
+--accent:#8aa4ff;--accent-soft:#1d2848;--accent-ink:#bccaff;--on-accent:#0d111a;--tag:#f0b46a;--tag-soft:#35280f}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) max(20px,env(safe-area-inset-right)) calc(56px + env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));-webkit-font-smoothing:antialiased}
+body{margin:0;color:var(--ink);font:14.5px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;
+background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 8%,var(--bg)),var(--bg) 380px) no-repeat,var(--bg);
+padding:env(safe-area-inset-top) max(20px,env(safe-area-inset-right)) calc(56px + env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left))}
+body::before{content:"";position:fixed;inset:0 0 auto 0;height:3px;background:var(--accent);z-index:5}
 main{max-width:1160px;margin:0 auto}
-header{padding:44px 0 26px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
-h1{margin:0;font-size:clamp(26px,4vw,36px);font-weight:700;letter-spacing:-.03em}
-.sub{color:var(--mute);margin:6px 0 0;font-size:13.5px}
+header{padding:44px 0 26px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:14px;align-items:center}
+.logo{width:46px;height:46px;border-radius:12px;display:block;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+h1{margin:0;font-size:clamp(24px,4vw,32px);font-weight:700;letter-spacing:-.03em;line-height:1.15}
+.sub{color:var(--mute);margin:3px 0 0;font-size:13px}
 button,select,input{font:inherit;color:inherit}
-.btn{background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;font-size:13px}
-.btn:hover{background:var(--soft)}
-.btn:focus-visible,.chip:focus-visible,.sg:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,.code:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.btn{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:500}
+.btn:hover{border-color:var(--accent);color:var(--accent-ink)}
+#install{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn:focus-visible,.chip:focus-visible,.sg:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,.code:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;align-items:center}
-.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;cursor:pointer;font-size:13px;transition:border-color .15s}
-.chip:hover{border-color:var(--mute)}
-.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.chip span{opacity:.5;margin-left:3px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 13px;cursor:pointer;font-size:13px;transition:border-color .15s,background .15s}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.chip span{opacity:.55;margin-left:3px}
 .chip.tp::before,.badge::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:7px}
-.seg{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px;gap:2px}
-.sg{border:0;background:transparent;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--mute)}
-.sg[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.14);font-weight:600}
-.sg span{opacity:.55;margin-left:3px}
+.chip.tp[aria-pressed=true]::before{box-shadow:0 0 0 2px var(--on-accent)}
+.seg{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px;gap:2px;border:1px solid var(--line)}
+.sg{border:0;background:transparent;padding:6px 16px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--mute);font-weight:500}
+.sg[aria-pressed=true]{background:var(--card);color:var(--accent-ink);box-shadow:0 1px 3px rgba(15,23,41,.16);font-weight:600}
+.sg span{opacity:.6;margin-left:3px}
 .bar{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
 .bar input[type=search]{flex:1 1 240px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
 .bar select{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.bar input:focus,.bar select:focus{border-color:var(--accent)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-top:22px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;gap:14px;align-items:flex-start;transition:box-shadow .2s,transform .2s}
-.card:hover{box-shadow:0 10px 28px rgba(0,0,0,.08);transform:translateY(-2px)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;gap:14px;align-items:flex-start;transition:box-shadow .2s,transform .2s,border-color .2s}
+.card:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));box-shadow:0 10px 28px rgba(15,23,41,.09);transform:translateY(-2px)}
 .card.big{flex-direction:column;align-items:stretch}
-.pics{display:flex;gap:10px;justify-content:center;align-items:center;background:var(--soft);border-radius:12px;padding:16px;min-height:150px}
+.pics{display:flex;gap:10px;justify-content:center;align-items:center;background:var(--soft);border-radius:10px;padding:16px;min-height:150px}
 .pics img{flex:0 1 auto;min-width:0;max-width:calc(50% - 6px);max-height:180px;width:auto;height:auto;object-fit:contain;border-radius:0;display:block;background:transparent}
-.coin{flex:none;width:52px;height:52px;border-radius:12px;display:grid;place-items:center;background:var(--soft);color:var(--mute);font-weight:600;font-size:12px}
+.coin{flex:none;width:52px;height:52px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-ink);font-weight:700;font-size:12px;letter-spacing:.04em}
 .body{min-width:0;flex:1}
 .title{font-weight:600;margin:0 0 6px;font-size:15px;line-height:1.35;overflow-wrap:anywhere}
 .meta{color:var(--mute);font-size:12.5px;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
 .badge{display:inline-flex;align-items:center;color:var(--ink);font-weight:600}
-.qty{font-weight:700;color:var(--ink);background:var(--soft);border-radius:6px;padding:0 6px}
+.qty{font-weight:700;color:var(--accent-ink);background:var(--accent-soft);border-radius:6px;padding:0 7px}
 .row{display:flex;gap:6px;align-items:center;margin-top:10px;flex-wrap:wrap}
-.code{font-family:ui-monospace,Menlo,monospace;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:3px 8px;background:transparent;cursor:pointer}
-.code:hover{background:var(--soft)}
+.lbl{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--mute);min-width:58px}
+.lbl.tg{color:var(--tag)}
+.code{font-family:ui-monospace,Menlo,monospace;font-size:12px;font-weight:600;border:1px solid transparent;border-radius:8px;padding:3px 9px;background:var(--accent-soft);color:var(--accent-ink);cursor:pointer}
+.code:hover{border-color:var(--accent)}
+.code.tg{background:var(--tag-soft);color:var(--tag)}
+.code.tg:hover{border-color:var(--tag)}
 .code.ok{border-color:var(--ink)}
-a.go{font-size:12.5px;color:var(--mute);text-decoration:none;margin-left:auto}
-a.go:hover{color:var(--ink);text-decoration:underline}
+.code.pend{background:var(--tag-soft);color:var(--tag);font-family:inherit}
+.card.pend{background:color-mix(in srgb,var(--tag) 7%,var(--card));border-color:color-mix(in srgb,var(--tag) 28%,var(--line))}
+.card.pend .pics{background:color-mix(in srgb,var(--tag) 8%,var(--soft))}
+a.go{font-size:12.5px;font-weight:500;color:var(--accent);text-decoration:none}
+a.go:hover{text-decoration:underline}
 .empty,.msg{padding:32px;text-align:center;color:var(--mute)}
 .msg{background:var(--card);border:1px solid var(--line);border-radius:14px;color:var(--ink);text-align:left}
 .msg code{background:var(--soft);padding:1px 5px;border-radius:4px}
@@ -65,9 +82,12 @@ a.go:hover{color:var(--ink);text-decoration:underline}
 <body>
 <main>
 <header>
-  <div>
-    <h1>Coins &amp; Tags</h1>
-    <p class="sub" id="status">Carregant el full…</p>
+  <div class="brand">
+    <img class="logo" src="icon-192.png" alt="">
+    <div>
+      <h1>Geocoins &amp; Tags</h1>
+      <p class="sub" id="status">Carregant el full…</p>
+    </div>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="install" type="button" hidden>Instal·la l'app</button><button class="btn" id="refresh" type="button">Actualitza des del full</button></div>
 </header>
@@ -89,7 +109,6 @@ a.go:hover{color:var(--ink);text-decoration:underline}
     <option value="name">Nom A–Z</option>
   </select>
 </div>
-<div class="chips" id="sections" role="group" aria-label="Seccions"></div>
 <div id="out"></div>
 </main>
 
@@ -131,9 +150,32 @@ const isImg = u => /\.(jpe?g|png|webp|gif|avif)(\?|$)/i.test(u) || /drive\.googl
 const toImg = u => { const m = u.match(/\/file\/d\/([\w-]+)/) || u.match(/[?&]id=([\w-]+)/); return m ? `https://lh3.googleusercontent.com/d/${m[1]}=w600` : u; };
 
 // Llegeix les files segons els noms de columna de la fila de capçalera (Nom, Codi, Enllaç, Quantitat, Frontal, Dors)
+// Separa els codis d'una cel·la (un per línia, o separats per coma, punt i coma, barra, o espais)
+function parseCodes(text) {
+  const out = [];
+  String(text || "").split(/[\n,;\/|]+/).forEach(seg => {
+    seg = seg.trim(); if (!seg) return;
+    const m = seg.match(/[A-Z0-9]{4,9}(?:\s*\([^)]*\))?/g);
+    if (m && m.length > 1) m.forEach(x => out.push(x.trim())); else out.push(seg);
+  });
+  return out;
+}
+
+// Seccions del full -> tipus (per si la columna Tipus està buida)
+function typeFromSection(sec, tab) {
+  if (/trobad/i.test(sec)) return "Trobades";
+  if (/\bhq\b/i.test(sec)) return "HQ";
+  if (/lackeys\s*personal/i.test(sec)) return "Lackeys personal";
+  if (/lackeys|lakeys/i.test(sec)) return "Lackeys";
+  if (/personal/i.test(sec)) return tab === "Tags" ? "Personals" : "Personal";
+  if (/catalan/i.test(sec)) return "Catalanes";
+  return "Variades";
+}
+
+// Llegeix les files segons els noms de columna de la fila de capçalera (Tipus, Nom, Codi, Enllaç, Quantitat, Frontal, Dors)
 function parseRows(rows, tab) {
   let hi = rows.findIndex(r => r.some(c => norm(c) === "codi") && r.some(c => norm(c) === "nom"));
-  let H = hi >= 0 ? rows[hi].map(norm) : ["frontal", "dors", "nom", "codi", "enllac", "quantitat", "frontal", "dors"];
+  let H = hi >= 0 ? rows[hi].map(norm) : ["tipus", "frontal", "dors", "nom", "codi", "enllac", "quantitat", "frontal", "dors"];
   if (hi < 0) hi = 0;
   const idx = n => H.indexOf(n);
   const iTipus = ["tipus", "tipo", "type", "categoria"].map(idx).find(i => i >= 0) ?? -1;
@@ -151,32 +193,36 @@ function parseRows(rows, tab) {
     const nom = get(iNom);
     const date = toDate(nom) || toDate(v.join(" "));
     const title = nom.split("\n").map(l => l.replace(/\d{1,2}\/\d{1,2}\/\d{4}/, "").trim()).filter(Boolean).join(" · ");
-    const codes = get(iCodi).split(/[\n,;]+/).map(c => c.trim()).filter(Boolean);
+    const codes = parseCodes(get(iCodi));
     if (!title && !codes.length) return;
-    const url = (get(iUrl).match(/https?:\/\/\S+/) || [""])[0];
+    // Columna Enllaç: pot tenir una URL i/o un codi vinculat (a Coins és el d'un Tag; a Tags és el d'una Geocoin)
+    const link = get(iUrl);
+    const url = (link.match(/https?:\/\/\S+/) || [""])[0];
+    const tagCodes = parseCodes(link.replace(/https?:\/\/\S+/g, " ")).filter(c => /\b[A-Z0-9]{4,9}\b/.test(c) || /\bx\s*activar\b/i.test(c));
     const q = parseInt(get(iQty), 10);
     const pick = list => { for (const i of list) { const u = (get(i).match(/https?:\/\/\S+/) || [""])[0]; if (u && isImg(u)) return toImg(u); } return ""; };
     const images = [pick(fr), pick(dr)].filter(Boolean);
-    const tv = get(iTipus).split("\n")[0].trim();
-    const t = tv ? [tv] : (TYPES.find(t => t[1].test(title)) || (/personal/i.test(section) ? ["Personal"] : ["Altres"]));
+    const type = get(iTipus).split("\n")[0].trim() || typeFromSection(section, tab);
     const yr = date ? date.getFullYear() : ((title.match(/20\d\d/) || [""])[0]);
-    out.push({images, title: title || codes[0], codes, url, date, year: String(yr || ""), type: t[0], color: colorOf(t[0]),
-      section: section || "General", tab, kind: (tab === "Tags" || isTagType(t[0])) ? "Tag" : "Geocoin", qty: isNaN(q) ? 1 : q});
+    out.push({images, title: title || codes[0], codes, tagCodes, url, date, year: String(yr || ""), type, color: colorOf(type),
+      section: section || "General", tab, kind: tab === "Tags" ? "Tag" : "Geocoin", qty: isNaN(q) ? 1 : q});
   });
   return out;
 }
 
-const TYPE_COLORS = {mega: "#d99a1f", giga: "#d1472b", maze: "#1f8fbf", blockparty: "#8a4fd3", event: "#2e9d5b", community: "#e0559c",
-  communitycelebration: "#e0559c", lackeys: "#c26a1b", personal: "#e0457b", personals: "#e0457b", altres: "#76817a"};
-// Aquests tipus només es mostren a "Totes" i "Tags" (mai a "Geocoins")
-const TAG_TYPES = ["lackeys", "lackeyspersonal", "personal", "personals", "signal", "voluntaris", "volutaris", "voluntari"];
-function isTagType(t) { return TAG_TYPES.includes(norm(t).replace(/[^a-z0-9]/g, "")); }
-
+const TYPE_ALIAS = {volutaris: "voluntaris", voluntari: "voluntaris", trobada: "trobades", variada: "variades", catalana: "catalanes",
+  lakeys: "lackeys", personals: "personal", lackeyspersonals: "lackeyspersonal"};
+const typeKey = t => { const k = norm(t).replace(/[^a-z0-9]/g, ""); return TYPE_ALIAS[k] || k; };
+const typeMatch = (itemType, chip) => typeKey(itemType) === typeKey(chip);
+const COIN_TYPES = ["Trobades", "HQ", "Lackeys", "Personal", "Catalanes", "Variades"];
+const TAG_TYPES = ["Trobades", "HQ", "Lackeys personal", "Lackeys", "Personals", "Voluntaris", "Signal", "Variades"];
+const TYPE_COLORS = {trobades: "#3b7ea1", hq: "#8a6d3b", lackeys: "#b0643a", personal: "#8b5e83", personals: "#8b5e83", catalanes: "#b4443c",
+  variades: "#6b7a8f", lackeyspersonal: "#a3604f", lakeys: "#b0643a", voluntaris: "#4f8a6b", signal: "#5b6fb5"};
 function colorOf(t) {
-  const k = norm(t).replace(/[^a-z0-9]/g, "");
+  const k = typeKey(t);
   if (TYPE_COLORS[k]) return TYPE_COLORS[k];
   let h = 0; for (const ch of k) h = (h * 31 + ch.charCodeAt(0)) % 360;
-  return `hsl(${h} 62% 46%)`;
+  return `hsl(${h} 40% 48%)`;
 }
 
 function gviz(tab) {
@@ -200,7 +246,7 @@ async function loadTab(tab, named) {
   return parseRows(rows, tab);
 }
 
-const CACHE_KEY = "coins-data-v1", IMG_CACHE = "coins-img-v1";
+const CACHE_KEY = "coins-data-v2", IMG_CACHE = "coins-img-v1";
 
 function saveCache() {
   try { localStorage.setItem(CACHE_KEY, JSON.stringify({t: Date.now(), items: items.map(i => ({...i, date: i.date ? i.date.getTime() : null}))})); } catch (_) {}
@@ -209,7 +255,7 @@ function loadCache() {
   try {
     const c = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
     if (!c || !Array.isArray(c.items) || !c.items.length) return null;
-    c.items = c.items.map(i => ({...i, date: i.date ? new Date(i.date) : null}));
+    c.items = c.items.map(i => ({...i, kind: i.kind === "Coin" ? "Geocoin" : i.kind, tagCodes: i.tagCodes || [], date: i.date ? new Date(i.date) : null}));
     return c;
   } catch (_) { return null; }
 }
@@ -240,10 +286,11 @@ async function load() {
   $("status").textContent = "Carregant el full…";
   try {
     const res = await Promise.allSettled([loadTab("Coins", false), loadTab("Tags", true)]);
-    const seen = new Set();
-    items = res.flatMap(r => r.status === "fulfilled" ? r.value : []).filter(i => {
-      const k = i.title + "|" + i.codes.join(","); return seen.has(k) ? false : (seen.add(k), true);
-    });
+    const lists = res.map(r => r.status === "fulfilled" ? r.value : []);
+    const sig = l => l.map(i => i.title + "|" + i.codes.join(",")).join("¦");
+    // si la pestanya «Tags» no existeix, Google retorna la primera pestanya: en aquest cas no la dupliquem
+    if (lists[1].length && sig(lists[0]) === sig(lists[1])) lists[1] = [];
+    items = lists.flat();
     if (!items.length) throw new Error(res.map(r => r.reason && r.reason.message).filter(Boolean).join(" | ") || "Sense dades");
     $("status").textContent = `${items.length} elements · actualitzat ${new Date().toLocaleTimeString("ca")}`;
     if (res[0].status === "fulfilled") saveCache();
@@ -263,31 +310,27 @@ async function load() {
 
 const pool = () => items.filter(i => !state.kind || i.kind === state.kind);
 
+// Els filtres de tipus canvien segons el botó triat: Geocoins, Tags o Totes
 function buildTypes() {
+  const list = state.kind === "Geocoin" ? COIN_TYPES : state.kind === "Tag" ? TAG_TYPES
+    : [...new Map([...COIN_TYPES, ...TAG_TYPES].map(t => [typeKey(t), t])).values()];
   const p = pool();
-  const tp = [...new Set(p.map(i => i.type))].sort((a, b) => a.localeCompare(b, "ca"));
-  if (state.type && !tp.includes(state.type)) state.type = "";
-  $("types").innerHTML = tp.map(t => `<button type="button" class="chip tp" style="--c:${esc(colorOf(t))}" data-t="${esc(t)}" aria-pressed="${state.type === t}">${esc(t)} <span>${p.filter(i => i.type === t).length}</span></button>`).join("");
-}
-
-function buildSections() {
-  const secs = [...new Set(pool().map(i => i.section))].filter(x => x && x !== "General");
-  if (state.section && !secs.includes(state.section)) state.section = "";
-  $("sections").innerHTML = secs.map(x => `<button type="button" class="chip" data-s="${esc(x)}" aria-pressed="${x === state.section}">${esc(x)}</button>`).join("");
+  if (state.type && !list.some(t => typeKey(t) === typeKey(state.type))) state.type = "";
+  $("types").innerHTML = list.map(t => `<button type="button" class="chip tp" style="--c:${esc(colorOf(t))}" data-t="${esc(t)}" aria-pressed="${typeKey(state.type) === typeKey(t) && !!state.type}">${esc(t)} <span>${p.filter(i => typeMatch(i.type, t, p)).length}</span></button>`).join("");
 }
 
 function buildFilters() {
   const yrs = [...new Set(items.map(i => i.year).filter(Boolean))].sort().reverse();
   $("year").innerHTML = `<option value="">Tots els anys</option>` + yrs.map(v => `<option>${esc(v)}</option>`).join("");
-  buildTypes(); buildSections();
+  buildTypes();
 }
 
 function render() {
   const q = state.q.toLowerCase();
   let list = items.filter(i =>
-    (!state.kind || i.kind === state.kind) && (!state.dup || i.qty > 1) && (!state.section || i.section === state.section) && (!state.type || i.type === state.type) &&
+    (!state.kind || i.kind === state.kind) && (!state.dup || i.qty > 1) && (!state.type || typeMatch(i.type, state.type, pool())) &&
     (!state.year || i.year === state.year) &&
-    (!q || (i.title + " " + i.codes.join(" ")).toLowerCase().includes(q)));
+    (!q || (i.title + " " + i.codes.join(" ") + " " + (i.tagCodes || []).join(" ")).toLowerCase().includes(q)));
   const by = state.sort;
   list.sort((a, b) => by === "name" ? a.title.localeCompare(b.title, "ca")
     : ((a.date || 0) - (b.date || 0)) * (by === "date-asc" ? 1 : -1));
@@ -345,22 +388,26 @@ function fixImages() {
 
 function card(i) {
   const d = i.date ? i.date.toLocaleDateString("ca", {day: "numeric", month: "short", year: "numeric"}) : "";
-  const ab = i.type === "Block Party" ? "BP" : i.type.slice(0, 4);
+  const ab = i.type.slice(0, 3).toUpperCase();
   const pic = i.images.length
     ? `<div class="pics">${i.images.map((u, n) => `<img src="${esc(u)}" alt="${esc(i.title)} (${n ? "darrere" : "davant"})" loading="lazy" crossorigin="anonymous" referrerpolicy="no-referrer">`).join("")}</div>`
-    : `<div class="coin" style="--c:${esc(i.color)}" aria-hidden="true">${esc(ab)}</div>`;
-  return `<article class="card${i.images.length ? " big" : ""}" style="--c:${esc(i.color)}">${pic}
+    : `<div class="coin" aria-hidden="true">${esc(ab)}</div>`;
+  const chip = (c, cls) => `<button type="button" class="code${cls ? " " + cls : ""}${/\bx\s*activar\b/i.test(c) ? " pend" : ""}" data-c="${esc((c.match(/[A-Z0-9]{4,9}/) || [c])[0])}" title="Copia el codi">${esc(c)}</button>`;
+  const tc = i.tagCodes || [];
+  const pend = [...i.codes, ...tc].some(c => /\bx\s*activar\b/i.test(c));
+  return `<article class="card${i.images.length ? " big" : ""}${pend ? " pend" : ""}" style="--c:${esc(i.color)}">${pic}
   <div class="body"><p class="title">${esc(i.title)}</p>
-  <div class="meta"><span class="badge">${esc(i.type)}</span>${d ? `<span>${esc(d)}</span>` : ""}<span>${esc(i.kind)}</span>${i.qty > 1 ? `<span class="qty">×${i.qty}</span>` : ""}</div>
-  <div class="row">${i.codes.map(c => `<button type="button" class="code" data-c="${esc((c.match(/[A-Z0-9]{5,7}/) || [c])[0])}" title="Copia el codi">${esc(c)}</button>`).join("")}
-  ${i.url ? `<a class="go" href="${esc(i.url)}" target="_blank" rel="noopener">Obre a geocaching.com</a>` : ""}</div></div></article>`;
+  <div class="meta"><span class="badge">${esc(i.type)}</span>${d ? `<span>${esc(d)}</span>` : ""}<span>${i.kind}</span>${i.qty > 1 ? `<span class="qty">×${i.qty}</span>` : ""}</div>
+  ${i.codes.length ? `<div class="row"><span class="lbl">${i.codes.length > 1 ? "Codis" : "Codi"}</span>${i.codes.map(c => chip(c, "")).join("")}</div>` : ""}
+  ${tc.length ? `<div class="row"><span class="lbl tg">${i.kind === "Tag" ? "Geocoin" : "Tag"}</span>${tc.map(c => chip(c, "tg")).join("")}</div>` : ""}
+  ${i.url ? `<div class="row"><a class="go" href="${esc(i.url)}" target="_blank" rel="noopener">Obre a geocaching.com ↗</a></div>` : ""}</div></article>`;
 }
 
 $("q").addEventListener("input", e => { state.q = e.target.value; render(); });
 $("types").addEventListener("click", e => {
   const b = e.target.closest(".chip"); if (!b) return;
-  state.type = state.type === b.dataset.t ? "" : b.dataset.t;
-  [...$("types").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.t === state.type));
+  state.type = typeKey(state.type) === typeKey(b.dataset.t) ? "" : b.dataset.t;
+  [...$("types").children].forEach(c => c.setAttribute("aria-pressed", !!state.type && typeKey(c.dataset.t) === typeKey(state.type)));
   render();
 });
 $("year").addEventListener("change", e => { state.year = e.target.value; render(); });
@@ -370,16 +417,10 @@ $("kind").addEventListener("click", e => {
   const b = e.target.closest(".sg"); if (!b) return;
   state.kind = b.dataset.k;
   [...$("kind").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.k === state.kind));
-  buildTypes(); buildSections(); render();
+  buildTypes(); render();
 });
 $("dup").addEventListener("click", e => {
   state.dup = !state.dup; e.currentTarget.setAttribute("aria-pressed", state.dup); render();
-});
-$("sections").addEventListener("click", e => {
-  const b = e.target.closest(".chip"); if (!b) return;
-  state.section = state.section === b.dataset.s ? "" : b.dataset.s;
-  [...$("sections").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.s === state.section));
-  render();
 });
 $("out").addEventListener("click", e => {
   const b = e.target.closest(".code"); if (!b) return;
